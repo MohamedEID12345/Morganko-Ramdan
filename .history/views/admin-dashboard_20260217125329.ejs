@@ -1,0 +1,15 @@
+<!-- Admin can view stats and export CSV -->
+<div class="container bg-white text-dark p-5 rounded">
+    <h3>لوحة التحكم - هايبر مرجانكوا</h3>
+    <hr>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white p-3">
+                <h4>المشاركين اليوم</h4>
+                <h2><%= participantCount %></h2>
+            </div>
+        </div>
+        <!-- Add forms for questions and CSV download button -->
+        <a href="/admin/export" class="btn btn-success mt-3">تحميل نتائج المشاركين (CSV)</a>
+    </div>
+</div>

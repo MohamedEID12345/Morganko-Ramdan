@@ -1,0 +1,30 @@
+<%- include('layout/header') %>
+<div class="container text-center mt-5">
+    <h2 class="mb-4 animate__animated animate__backInDown">🏆 قائمة الأوائل 🏆</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="main-card">
+                <table class="table table-borderless text-white">
+                    <thead>
+                        <tr>
+                            <th>المركز</th>
+                            <th>الاسم</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% topScorers.forEach((p, index) => { %>
+                            <tr class="animate__animated animate__fadeInUp" style="animation-delay: <%= index * 0.2 %>s">
+                                <td><span class="badge bg-warning text-dark rounded-circle"><%= index + 1 %></span></td>
+                                <td><%= p.name %></td>
+                                <td><%= p.score %> / 5</td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                <a href="/" class="btn btn-ramadan mt-3">العودة للرئيسية</a>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('layout/footer') %>

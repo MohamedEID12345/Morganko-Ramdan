@@ -1,0 +1,16 @@
+<%- include('layout/header') %>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="main-card animate__animated animate__fadeInUp text-center">
+                <h3 class="mb-4">دخول الإدارة 🔐</h3>
+                <form action="/admin/login" method="POST">
+                    <input type="text" name="username" class="form-control mb-3" placeholder="اسم المستخدم" required>
+                    <input type="password" name="password" class="form-control mb-3" placeholder="كلمة المرور" required>
+                    <button type="submit" class="btn btn-ramadan w-100">دخول</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('layout/footer') %>

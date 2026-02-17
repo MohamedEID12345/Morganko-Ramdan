@@ -1,0 +1,139 @@
+:root {
+    --ramadan-blue: #1a2a6c;
+    --ramadan-gold: #fdbb2d;
+    --ramadan-purple: #b21f1f;
+}
+
+body {
+    background: linear-gradient(180deg, #1a2a6c, #b21f1f, #fdbb2d);
+    min-height: 100vh;
+    font-family: 'Cairo', sans-serif;
+    color: white;
+    direction: rtl;
+    overflow-x: hidden;
+}
+
+/* Lantern Animation */
+.lantern {
+    width: 60px;
+    animation: swing 3s infinite ease-in-out;
+    transform-origin: top center;
+    position: absolute;
+}
+
+@keyframes swing {
+    0% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    100% { transform: rotate(-10deg); }
+}
+
+.card-custom {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--ramadan-gold);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.scratch-container {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    margin: 0 auto;
+    cursor: crosshair;
+}
+
+#scratch-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 2;
+}
+
+.prize-reveal {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    background: #fff;
+    color: #333;
+    border-radius: 10px;
+    text-align: center;
+}
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+
+:root {
+    --ramadan-dark: #1a2a6c;
+    --ramadan-purple: #b21f1f;
+    --ramadan-gold: #fdbb2d;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    background-attachment: fixed;
+    color: white;
+    direction: rtl;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* تحريك الفوانيس */
+.lantern-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 50px;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.lantern {
+    width: 80px;
+    animation: swing 3s infinite ease-in-out;
+    transform-origin: top center;
+}
+
+@keyframes swing {
+    0% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
+    100% { transform: rotate(-15deg); }
+}
+
+.main-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    border: 3px solid var(--ramadan-gold);
+    border-radius: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    padding: 30px;
+    margin-top: 50px;
+}
+
+.btn-ramadan {
+    background: var(--ramadan-gold);
+    color: var(--ramadan-dark);
+    font-weight: bold;
+    border-radius: 50px;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-ramadan:hover {
+    transform: scale(1.1);
+    background: white;
+    box-shadow: 0 0 20px var(--ramadan-gold);
+}
+
+.footer-brand {
+    margin-top: 50px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 15px;
+}

@@ -1,0 +1,122 @@
+<%- include('layout/header') %>
+<div class="container text-center mt-5">
+    <h2 class="animate__animated animate__fadeInDown">كارت السعادة من هايبر مرجانكوا 🎁</h2>
+    <!-- تم تعديل العرض هنا إلى 500px -->
+    <div class="scratch-container mt-4 shadow-lg" style="position: relative; width: 500px; height: 300px; margin: 0 auto; border-radius: 15px; overflow: hidden; border: 5px solid #fdbb2d; background: #fff;">
+        
+        <div id="prize-text" class="prize-reveal" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: white; z-index: 1;">
+            <div id="result-content" class="text-dark p-3 w-100">
+                <!-- النتيجة تظهر هنا -->
+            </div>
+        </div>
+
+        <!-- تم توحيد العرض هنا أيضاً 500 -->
+        <canvas id="scratch-canvas" width="500" height="300" style="position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair;"></canvas>
+    </div>
+    
+    <p class="mt-3 text-warning fw-bold animate__animated animate__pulse animate__infinite">استخدم إصبعك أو الماوس لخربشة الكارت 👆</p>
+</div>
+
+<audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio> 
+<audio id="loseSound" src="https://assets.mixkit.co/active_storage/sfx/471/471-preview.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+const canvas = document.getElementById('scratch-canvas');
+const ctx = canvas.getContext('2d');
+let isDrawing = false;
+let isRevealed = false;
+
+// 1. فحص الجهاز
+window.onload = async () => {
+    const deviceId = localStorage.getItem('device_id');
+    const res = await fetch('/scratch/check-device', { 
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await res.json();
+    if (!data.allowed) {
+        Swal.fire('تنبيه', data.msg, 'warning').then(() => window.location.href = '/');
+    }
+}
+
+// 2. رسم الغلاف بأبعاد 500x300
+const coverImg = new Image();
+coverImg.crossOrigin = "anonymous"; 
+coverImg.src = 'https://i.ibb.co/bhHbhjC/morgan.png'; 
+coverImg.onload = () => {
+    ctx.drawImage(coverImg, 0, 0, 500, 300); // رسم الصورة بالعرض الجديد
+    ctx.fillStyle = "rgba(192, 192, 192, 0.4)"; 
+    ctx.fillRect(0, 0, 500, 300);
+};
+
+function scratch(e) {
+    if (!isDrawing || isRevealed) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - rect.left;
+    const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - rect.top;
+    
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 35, 0, Math.PI * 2); // تكبير ريشة المسح قليلاً لتناسب العرض
+    ctx.fill();
+    checkReveal();
+}
+
+function checkReveal() {
+    if (isRevealed) return;
+    // تم تحديث الحسابات لتشمل المساحة الجديدة 500*300
+    const imageData = ctx.getImageData(0, 0, 500, 300).data;
+    let transparent = 0;
+    for (let i = 0; i < imageData.length; i += 4) {
+        if (imageData[i + 3] < 128) transparent++;
+    }
+    if ((transparent / (500 * 300)) > 0.4) { // مسح 40% كافي للكشف
+        isRevealed = true;
+        canvas.style.transition = 'opacity 0.6s';
+        canvas.style.opacity = '0';
+        setTimeout(() => canvas.style.display = 'none', 600);
+        triggerServerReveal();
+    }
+}
+
+async function triggerServerReveal() {
+    const deviceId = localStorage.getItem('device_id');
+    const res = await fetch('/scratch/reveal', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await res.json();
+    
+    const content = document.getElementById('result-content');
+    let html = `<div class="animate__animated animate__zoomIn w-100">`;
+    html += `<span class="badge bg-secondary mb-2">كارت رقم: ${data.order}</span>`;
+
+    if(data.isWinner) {
+        document.getElementById('winSound').play();
+        html += `<h2 class="text-success fw-bold">مبروك فزت! 🎉</h2>
+                 <p class="mb-1 text-dark fs-4">${data.amount}</p>
+                 <div class="bg-warning p-2 rounded mb-2 fw-bold mx-auto" style="max-width:300px; font-size: 1.5rem; border: 3px dashed #000;">
+                    ${data.claimCode}
+                 </div>
+                 <a href="https://wa.me/20100?text=كود الفوز: ${data.claimCode}" class="btn btn-success btn-lg shadow">استلم واتساب</a>`;
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+    } else {
+        document.getElementById('loseSound').play();
+        html += `<h2 class="text-danger fw-bold">حظ أوفر! 🌙</h2>
+                 <p class="text-muted">شكراً لمحاولتك مع هايبر مرجانكوا</p>
+                 <a href="/" class="btn btn-primary mt-2">العودة للرئيسية</a>`;
+    }
+    html += `</div>`;
+    content.innerHTML = html;
+}
+
+['mousedown', 'touchstart'].forEach(ev => canvas.addEventListener(ev, (e) => { isDrawing = true; scratch(e); e.preventDefault(); }, {passive: false}));
+['mouseup', 'touchend'].forEach(ev => canvas.addEventListener(ev, () => isDrawing = false));
+['mousemove', 'touchmove'].forEach(ev => canvas.addEventListener(ev, (e) => { scratch(e); e.preventDefault(); }, {passive: false}));
+</script>
+<%- include('layout/footer') %>

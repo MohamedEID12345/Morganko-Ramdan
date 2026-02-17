@@ -1,0 +1,64 @@
+:root {
+    --ramadan-blue: #1a2a6c;
+    --ramadan-gold: #fdbb2d;
+    --ramadan-purple: #b21f1f;
+}
+
+body {
+    background: linear-gradient(180deg, #1a2a6c, #b21f1f, #fdbb2d);
+    min-height: 100vh;
+    font-family: 'Cairo', sans-serif;
+    color: white;
+    direction: rtl;
+    overflow-x: hidden;
+}
+
+/* Lantern Animation */
+.lantern {
+    width: 60px;
+    animation: swing 3s infinite ease-in-out;
+    transform-origin: top center;
+    position: absolute;
+}
+
+@keyframes swing {
+    0% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    100% { transform: rotate(-10deg); }
+}
+
+.card-custom {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--ramadan-gold);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.scratch-container {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    margin: 0 auto;
+    cursor: crosshair;
+}
+
+#scratch-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 2;
+}
+
+.prize-reveal {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    background: #fff;
+    color: #333;
+    border-radius: 10px;
+    text-align: center;
+}

@@ -1,0 +1,37 @@
+<%- include('layout/header') %>
+
+<div class="container text-center mt-5">
+    <div class="lantern" style="left: 10%; top: 0;"><img src="/images/lantern.png" width="80"></div>
+    <div class="lantern" style="right: 10%; top: 0;"><img src="/images/lantern.png" width="80"></div>
+
+    <h1 class="display-3 fw-bold mb-4 animate__animated animate__bounceInDown">مسابقة رمضان للأطفال 🌙</h1>
+    <p class="lead mb-5">مرحباً بكم في مسابقة هايبر مرجانكوا اليومية</p>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-5">
+            <a href="/quiz" class="text-decoration-none">
+                <div class="card-custom animate__animated animate__pulse animate__infinite">
+                    <img src="/images/quiz-icon.png" height="100">
+                    <h3>المسابقة اليومية</h3>
+                    <p>أجب على الأسئلة واربح نقاطاً!</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-5">
+            <a href="/scratch" class="text-decoration-none">
+                <div class="card-custom animate__animated animate__pulse animate__infinite">
+                    <img src="/images/gift-icon.png" height="100">
+                    <h3>امسح واربح</h3>
+                    <p>جرب حظك وامسح الكارت للحصول على جائزة!</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <footer class="mt-5 p-4">
+        <p>برعاية: <strong>هايبر مرجانكوا</strong></p>
+        <p>تنفيذ: <strong>المهندس محمد عيد</strong></p>
+    </footer>
+</div>
+
+<%- include('layout/footer') %>

@@ -1,0 +1,104 @@
+<%- include('layout/header') %>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="main-card animate__animated animate__fadeIn">
+                <!-- المرحلة 1: إدخال البيانات -->
+                <div id="setup-section">
+                    <h2 class="text-center mb-4">بيانات المتسابق الصغير 👦👧</h2>
+                    <input type="text" id="p_name" class="form-control mb-3" placeholder="الاسم بالكامل">
+                    <input type="number" id="p_age" class="form-control mb-3" placeholder="العمر">
+                    <input type="text" id="p_phone" class="form-control mb-3" placeholder="رقم موبايل ولي الأمر">
+                    <button class="btn btn-ramadan w-100" onclick="startQuiz()">ابدأ المسابقة</button>
+                </div>
+
+                <!-- المرحلة 2: الأسئلة -->
+                <div id="quiz-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 id="timer" class="text-warning">الوقت المتبقي: 60</h4>
+                        <span id="q-counter">سؤال 1 من 5</span>
+                    </div>
+                    <div id="question-container">
+                        <h3 id="q-text" class="mb-4"></h3>
+                        <div id="options-container" class="d-grid gap-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentQuestions = <%- JSON.stringify(questions) %>;
+let currentIndex = 0;
+let answers = {};
+let timeLeft = 60;
+let timerInterval;
+
+function startQuiz() {
+    if(!document.getElementById('p_name').value) return alert('من فضلك ادخل اسمك');
+    document.getElementById('setup-section').style.display = 'none';
+    document.getElementById('quiz-section').style.display = 'block';
+    showQuestion();
+    startTimer();
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = `الوقت المتبقي: ${timeLeft}`;
+        if(timeLeft <= 0) submitQuiz();
+    }, 1000);
+}
+
+function showQuestion() {
+    if(currentIndex >= currentQuestions.length) return submitQuiz();
+    
+    let q = currentQuestions[currentIndex];
+    document.getElementById('q-text').innerText = q.question;
+    document.getElementById('q-counter').innerText = `سؤال ${currentIndex + 1} من ${currentQuestions.length}`;
+    
+    let optionsHtml = '';
+    [q.opt1, q.opt2, q.opt3, q.opt4].forEach((opt, idx) => {
+        optionsHtml += `<button class="btn btn-outline-light text-start p-3" onclick="saveAnswer(${q.id}, ${idx + 1})">${opt}</button>`;
+    });
+    document.getElementById('options-container').innerHTML = optionsHtml;
+}
+
+function saveAnswer(qId, val) {
+    answers[qId] = val;
+    currentIndex++;
+    showQuestion();
+}
+
+async function submitQuiz() {
+    clearInterval(timerInterval);
+    const payload = {
+        name: document.getElementById('p_name').value,
+        age: document.getElementById('p_age').value,
+        phone: document.getElementById('p_phone').value,
+        device_id: localStorage.getItem('device_id'),
+        answers: answers
+    };
+
+    const res = await fetch('/quiz/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    
+    if(result.success) {
+        if(result.score >= 4) confetti();
+        Swal.fire({
+            title: 'انتهت المسابقة!',
+            text: `درجتك هي ${result.score} من ${result.total}`,
+            icon: result.score >= 3 ? 'success' : 'info',
+            confirmButtonText: 'ممتاز'
+        }).then(() => window.location.href = '/');
+    } else {
+        alert(result.message);
+    }
+}
+</script>
+<%- include('layout/footer') %>

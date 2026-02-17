@@ -1,0 +1,106 @@
+<%- include('layout/header') %>
+    <div class="container bg-light text-dark p-4 rounded-4 mt-5">
+        <div class="d-flex justify-content-between">
+            <h2>لوحة التحكم ⚙️</h2>
+            <a href="/admin/export" class="btn btn-success">تحميل ملف المتسابقين CSV</a>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5>ضبط وقت المسابقة ⏰</h5>
+                    <form action="/admin/update-settings" method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>وقت المسابقة</h6>
+                                <input type="time" name="q_start" class="form-control mb-2">
+                                <input type="time" name="q_end" class="form-control mb-2">
+                            </div>
+                            <div class="col-md-6">
+                                <h6>وقت الخربشة</h6>
+                                <input type="time" name="s_start" class="form-control mb-2">
+                                <input type="time" name="s_end" class="form-control mb-2">
+                            </div>
+                        </div>
+                        <button class="btn btn-dark w-100">حفظ كافة الأوقات</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5>تحديد الكروت الفائزة 🎁</h5>
+                    <form action="/admin/add-prize" method="POST">
+                        <input type="number" name="index" placeholder="رقم الكارت (مثلا 25)" class="form-control mb-2"
+                            required>
+                        <input type="text" name="prize" placeholder="الجائزة (مثلا قسيمة 20 ج)"
+                            class="form-control mb-2" required>
+                        <input type="date" name="date" class="form-control mb-2"
+                            value="<%= new Date().toISOString().split('T')[0] %>">
+                        <button class="btn btn-warning w-100">إضافة فائز</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+        <div class="row">
+            <!-- إضافة أسئلة -->
+            <div class="col-md-5">
+                <h4>إضافة سؤال لليوم</h4>
+                <form action="/admin/add-question" method="POST" class="card p-3 shadow-sm">
+                    <input type="text" name="question" placeholder="السؤال" class="form-control mb-2" required>
+                    <div class="row g-2">
+                        <div class="col-6"><input type="text" name="opt1" placeholder="خيار 1"
+                                class="form-control mb-2"></div>
+                        <div class="col-6"><input type="text" name="opt2" placeholder="خيار 2"
+                                class="form-control mb-2"></div>
+                        <div class="col-6"><input type="text" name="opt3" placeholder="خيار 3"
+                                class="form-control mb-2"></div>
+                        <div class="col-6"><input type="text" name="opt4" placeholder="خيار 4"
+                                class="form-control mb-2"></div>
+                    </div>
+                    <select name="correct" class="form-select mb-2">
+                        <option value="1">الإجابة الصحيحة: 1</option>
+                        <option value="2">الإجابة الصحيحة: 2</option>
+                        <option value="3">الإجابة الصحيحة: 3</option>
+                        <option value="4">الإجابة الصحيحة: 4</option>
+                    </select>
+                    <input type="date" name="date" class="form-control mb-2"
+                        value="<%= new Date().toISOString().split('T')[0] %>">
+                    <button type="submit" class="btn btn-primary w-100">حفظ السؤال</button>
+                </form>
+            </div>
+
+            <!-- قائمة المشاركين -->
+            <div class="col-md-7">
+                <h4>المشاركون اليوم (فائزو الكروت: <%= winCount %>)</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>النتيجة</th>
+                                <th>الموبايل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% participants.forEach(p=> { %>
+                                <tr>
+                                    <td>
+                                        <%= p.name %>
+                                    </td>
+                                    <td><span class="badge bg-success">
+                                            <%= p.score %> / 5
+                                        </span></td>
+                                    <td>
+                                        <%= p.phone %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include('layout/footer') %>

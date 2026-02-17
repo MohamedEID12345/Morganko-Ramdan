@@ -1,0 +1,167 @@
+<%- include('layout/header') %>
+<div class="container text-center mt-5">
+    <h2 class="animate__animated animate__fadeInDown">كارت السعادة من هايبر مرجانكوا 🎁</h2>
+    <div class="scratch-container mt-4 shadow-lg" style="position: relative; width: 300px; height: 300px; margin: 0 auto; border-radius: 15px; overflow: hidden; border: 5px solid #fdbb2d;">
+        
+        <!-- الطبقة الخلفية (التي تظهر بعد الخربشة) -->
+        <div id="prize-text" class="prize-reveal" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: white; z-index: 1;">
+            <div id="result-content" class="text-dark p-3">
+                <!-- سيتم وضع النتيجة هنا -->
+            </div>
+        </div>
+
+        <!-- الطبقة الأمامية (الكانفاس) -->
+        <canvas id="scratch-canvas" width="500" height="300" style="position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair;"></canvas>
+    </div>
+    
+    <p class="mt-3 text-warning fw-bold animate__animated animate__pulse animate__infinite">استخدم إصبعك أو الماوس لخربشة الكارت 👆</p>
+</div>
+
+<!-- ملفات الصوت -->
+<audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio> 
+<audio id="loseSound" src="https://assets.mixkit.co/active_storage/sfx/471/471-preview.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+const canvas = document.getElementById('scratch-canvas');
+const ctx = canvas.getContext('2d');
+let isDrawing = false;
+let isRevealed = false;
+
+// 1. فحص الجهاز عند التحميل
+window.onload = async () => {
+    const deviceId = localStorage.getItem('device_id');
+    const res = await fetch('/scratch/check-device', { 
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await res.json();
+    if (!data.allowed) {
+        Swal.fire('تنبيه', data.msg, 'warning').then(() => window.location.href = '/');
+    }
+}
+
+// 2. تهيئة الكانفاس بصورة الغلاف
+const coverImg = new Image();
+coverImg.src = 'https://i.ibb.co/bhHbhjC/morgan.png'; // الصورة التي تظهر قبل الخربشة
+coverImg.onload = () => {
+    // رسم الصورة على الكانفاس
+    ctx.drawImage(coverImg, 0, 0, 300, 300);
+    
+    // إضافة طبقة تظليل خفيفة فوق الصورة لجعلها تبدو ككارت خربشة
+    ctx.fillStyle = "rgba(192, 192, 192, 0.4)"; 
+    ctx.fillRect(0, 0, 300, 300);
+    
+    // كتابة نص توضيحي
+    ctx.fillStyle = '#1a2a6c';
+    ctx.font = 'bold 24px Cairo';
+    ctx.textAlign = 'center';
+    ctx.fillText('', 150, 260);
+};
+
+// 3. منطق الخربشة
+function scratch(e) {
+    if (!isDrawing || isRevealed) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - rect.left;
+    const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - rect.top;
+    
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    checkReveal();
+}
+
+function checkReveal() {
+    if (isRevealed) return;
+    const imageData = ctx.getImageData(0, 0, 300, 300).data;
+    let transparent = 0;
+    for (let i = 0; i < imageData.length; i += 4) {
+        if (imageData[i + 3] < 128) transparent++;
+    }
+    // إذا تم خربشة أكثر من 50%
+    if ((transparent / (300 * 300)) > 0.5) {
+        isRevealed = true;
+        canvas.style.transition = 'opacity 1s';
+        canvas.style.opacity = '0';
+        setTimeout(() => canvas.style.display = 'none', 1000);
+        triggerServerReveal();
+    }
+}
+
+// 4. جلب النتيجة من السيرفر
+async function triggerServerReveal() {
+    const deviceId = localStorage.getItem('device_id');
+    const res = await fetch('/scratch/reveal', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await res.json();
+    
+    const content = document.getElementById('result-content');
+    let html = `<div class="animate__animated animate__zoomIn">`;
+    html += `<span class="badge bg-secondary mb-2">كارت رقم: ${data.order}</span>`;
+
+    if(data.isWinner) {
+        // تشغيل صوت الفوز
+        document.getElementById('winSound').play();
+        
+        html += `<h2 class="text-success fw-bold">مبروك فزت! 🎉</h2>
+                 <img src="/images/gift-icon.png" width="80" class="mb-2 animate__animated animate__bounceIn">
+                 <p class="mb-1 text-dark">${data.amount}</p>
+                 <div class="bg-warning p-2 rounded mb-2 fw-bold" style="font-size: 1.2rem; border: 2px dashed #000;">
+                    ${data.claimCode}
+                 </div>
+                 <small class="d-block mb-2 text-muted">صور الشاشة لاستلام الجائزة</small>
+                 <a href="https://wa.me/201XXXXXXXXX?text=كود الفوز: ${data.claimCode}" class="btn btn-success btn-sm">استلم واتساب</a>`;
+        
+        // فرقعة الاحتفال (Confetti)
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    } else {
+        // تشغيل صوت الخسارة
+        document.getElementById('loseSound').play();
+        
+        html += `<h2 class="text-danger fw-bold">حظ أوفر! 🌙</h2>
+                 <img src="https://cdn-icons-png.flaticon.com/512/1150/1150876.png" width="80" class="mb-2 grayscale">
+                 <p class="text-muted small">شكراً لمحاولتك مع هايبر مرجانكوا، حاول مرة أخرى غداً</p>
+                 <a href="/" class="btn btn-primary btn-sm mt-2">العودة</a>`;
+    }
+    html += `</div>`;
+    content.innerHTML = html;
+}
+
+// أحداث الماوس واللمس
+['mousedown', 'touchstart'].forEach(ev => canvas.addEventListener(ev, (e) => { 
+    isDrawing = true; 
+    scratch(e); 
+    e.preventDefault(); 
+}, {passive: false}));
+
+['mouseup', 'touchend'].forEach(ev => canvas.addEventListener(ev, () => isDrawing = false));
+
+['mousemove', 'touchmove'].forEach(ev => canvas.addEventListener(ev, (e) => { 
+    scratch(e); 
+    e.preventDefault(); 
+}, {passive: false}));
+
+</script>
+
+<style>
+    .grayscale { filter: grayscale(1); opacity: 0.6; }
+    .prize-reveal {
+        font-family: 'Cairo', sans-serif;
+        text-align: center;
+    }
+</style>
+<%- include('layout/footer') %>

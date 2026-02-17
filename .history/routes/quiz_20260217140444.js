@@ -1,0 +1,41 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db');
+
+// فحص الجهاز قبل الدخول
+router.post('/check-device', (req, res) => {
+    const { device_id } = req.body;
+    const today = new Date().toISOString().split('T')[0];
+    db.get("SELECT id FROM participants WHERE device_id = ? AND quiz_date = ?", [device_id, today], (err, row) => {
+        if (row) return res.json({ allowed: false, msg: "لقد شاركت في مسابقة اليوم بالفعل! حاول غداً 🌙" });
+        res.json({ allowed: true });
+    });
+});
+
+// تسليم المسابقة وحساب النتيجة
+router.post('/submit', (req, res) => {
+    const { name, age, phone, device_id, answers } = req.body;
+    const today = new Date().toISOString().split('T')[0];
+
+    db.all("SELECT id, correct_answer FROM questions WHERE quiz_date = ?", [today], (err, questions) => {
+        if (!questions || questions.length === 0) {
+            return res.json({ success: false, message: "لا توجد أسئلة اليوم" });
+        }
+
+        let score = 0;
+        questions.forEach(q => {
+            // answers هي Object مفتاحه id السؤال وقيمته رقم الإجابة المختارة
+            if (answers[q.id] == q.correct_answer) {
+                score++;
+            }
+        });
+
+        db.run("INSERT INTO participants (name, age, phone, device_id, score, quiz_date) VALUES (?,?,?,?,?,?)",
+        [name, age, phone, device_id, score, today], function(err) {
+            if (err) return res.json({ success: false, message: "لقد شاركت اليوم بالفعل" });
+            res.json({ success: true, score: score, total: questions.length });
+        });
+    });
+});
+
+module.exports = router;

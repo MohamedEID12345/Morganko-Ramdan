@@ -1,0 +1,64 @@
+<footer class="text-center mt-5 mb-4 animate__animated animate__fadeIn">
+        <div class="footer-brand border-top pt-4">
+            <h5 class="text-warning">برعاية: هايبر مرجانكوا 🛒</h5>
+            <p class="mb-0">تنفيذ: المهندس محمد عيد 👨‍💻</p>
+            <small class="text-light-50">جميع الحقوق محفوظة &copy; 2026</small>
+        </div>
+        
+    </footer>
+    <!-- مشغل الصوت -->
+<audio id="bgAudio" loop>
+    <source src="<%= settings.bg_music %>" type="audio/mpeg">
+</audio>
+
+<!-- زر التحكم العائم -->
+<div id="musicControl" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; cursor: pointer;">
+    <div class="bg-warning p-3 rounded-circle shadow animate__animated animate__pulse animate__infinite">
+        <span id="musicIcon">🔇</span>
+    </div>
+</div>
+
+<script>
+    const audio = document.getElementById('bgAudio');
+    const musicControl = document.getElementById('musicControl');
+    const musicIcon = document.getElementById('musicIcon');
+    let isPlaying = true;
+
+    // استعادة حالة الموسيقى من sessionStorage (لكي لا تبدأ من الصفر عند التنقل بين الصفحات)
+    if (sessionStorage.getItem('musicPlaying') === 'true') {
+        // المتصفح سيمنع التشغيل التلقائي إلا بعد أول نقرة
+        document.body.addEventListener('click', () => {
+            if (!isPlaying) playMusic();
+        }, { once: true });
+    }
+
+    musicControl.addEventListener('click', () => {
+        if (isPlaying) {
+            pauseMusic();
+        } else {
+            playMusic();
+        }
+    });
+
+    function playMusic() {
+        audio.play().then(() => {
+            isPlaying = true;
+            musicIcon.innerText = '🔊';
+            sessionStorage.setItem('musicPlaying', 'true');
+        }).catch(err => console.log("Autoplay blocked"));
+    }
+
+    function pauseMusic() {
+        audio.pause();
+        isPlaying = false;
+        musicIcon.innerText = '🔇';
+        sessionStorage.setItem('musicPlaying', 'false');
+    }
+</script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

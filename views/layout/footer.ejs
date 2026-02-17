@@ -1,0 +1,100 @@
+<footer class="text-center mt-5 mb-4 animate__animated animate__fadeIn">
+        <div class="footer-brand border-top pt-4">
+            <h5 class="text-warning">برعاية: هايبر مرجانكوا 🛒</h5>
+            <p class="mb-0">تنفيذ: المهندس محمد عيد 👨‍💻</p>
+            <small class="text-light-50">جميع الحقوق محفوظة &copy; 2026</small>
+        </div>
+        
+    </footer>
+    <!-- مشغل الصوت -->
+<audio id="bgAudio" loop>
+    <source src="<%= settings.bg_music %>" type="audio/mpeg">
+</audio>
+
+<!-- زر التحكم العائم -->
+<div id="musicControl" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; cursor: pointer;">
+    <div class="bg-warning p-3 rounded-circle shadow animate__animated animate__pulse animate__infinite">
+        <span id="musicIcon">🔇</span>
+    </div>
+</div>
+
+<script>
+    const audio = document.getElementById('bgAudio');
+    const musicControl = document.getElementById('musicControl');
+    const musicIcon = document.getElementById('musicIcon');
+    let isPlaying = false;
+
+    // دالة لحفظ الوقت الحالي للأغنية قبل مغادرة الصفحة
+    window.addEventListener('beforeunload', () => {
+        if (isPlaying) {
+            localStorage.setItem('musicTimestamp', audio.currentTime);
+        }
+    });
+
+    function tryAutoPlay() {
+        if (isPlaying) return;
+
+        // استرجاع الوقت المخزن
+        const savedTime = localStorage.getItem('musicTimestamp');
+        if (savedTime) {
+            audio.currentTime = parseFloat(savedTime);
+        }
+
+        audio.play().then(() => {
+            isPlaying = true;
+            musicIcon.innerText = '🔊';
+            sessionStorage.setItem('musicPlaying', 'true');
+            removeEventListeners();
+        }).catch(err => {
+            console.log("بانتظار تفاعل المستخدم...");
+        });
+    }
+
+    function pauseMusic() {
+        audio.pause();
+        isPlaying = false;
+        musicIcon.innerText = '🔇';
+        sessionStorage.setItem('musicPlaying', 'false');
+        localStorage.removeItem('musicTimestamp'); // مسح الوقت إذا أوقفها المستخدم يدوياً
+    }
+
+    musicControl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isPlaying) {
+            pauseMusic();
+        } else {
+            tryAutoPlay();
+        }
+    });
+
+    const interactions = ['click', 'mousedown', 'touchstart', 'scroll', 'keydown'];
+    
+    function addEventListeners() {
+        interactions.forEach(event => {
+            window.addEventListener(event, tryAutoPlay, { once: true });
+        });
+    }
+
+    function removeEventListeners() {
+        interactions.forEach(event => {
+            window.removeEventListener(event, tryAutoPlay);
+        });
+    }
+
+    window.addEventListener('load', () => {
+        // إذا كانت الموسيقى يجب أن تعمل
+        if (sessionStorage.getItem('musicPlaying') !== 'false') {
+            tryAutoPlay();
+            addEventListeners();
+        } else {
+            musicIcon.innerText = '🔇';
+        }
+    });
+</script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

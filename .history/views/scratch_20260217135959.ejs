@@ -1,0 +1,100 @@
+<%- include('layout/header') %>
+<div class="container text-center mt-5">
+    <h2>كارت السعادة 🎁</h2>
+    <div class="scratch-container mt-4">
+        <div id="prize-text" class="prize-reveal">
+            <div id="result-content">
+                <!-- Data from server -->
+            </div>
+        </div>
+        <canvas id="scratch-canvas" width="300" height="300"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+const canvas = document.getElementById('scratch-canvas');
+const ctx = canvas.getContext('2d');
+let isDrawing = false;
+let revealedPercent = 0;
+window.onload = async () => {
+    const deviceId = localStorage.getItem('device_id');
+    const res = await fetch('/quiz/check-device', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await res.json();
+    if (!data.allowed) {
+        Swal.fire('عفواً', data.msg, 'error').then(() => window.location.href = '/');
+    }
+}
+// Initialize Canvas with Gold Layer
+function init() {
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(0, 0, 300, 300);
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('امسح هنا 🌙', 150, 150);
+}
+
+// Scratch logic
+function scratch(e) {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+    
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    checkReveal();
+}
+
+function checkReveal() {
+    const imageData = ctx.getImageData(0, 0, 300, 300).data;
+    let transparent = 0;
+    for (let i = 0; i < imageData.length; i += 4) {
+        if (imageData[i + 3] < 128) transparent++;
+    }
+    if ((transparent / (300 * 300)) > 0.6) {
+        canvas.style.display = 'none';
+        triggerServerReveal();
+    }
+}
+
+async function triggerServerReveal() {
+    const deviceId = localStorage.getItem('device_id');
+    const res = await fetch('/scratch/reveal', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ device_id: deviceId })
+    });
+    const data = await res.json();
+    
+    const content = document.getElementById('result-content');
+    let html = `<p class="badge bg-dark">كارت رقم: ${data.order}</p>`; // إظهار الترتيب الرقمي
+
+    if(data.isWinner) {
+        html += `<h3>مبروك! 🎉</h3>
+                 <p>لقد فزت بـ: <strong>${data.amount}</strong></p>
+                 <p>كود الجائزة: <span class="text-danger fw-bold">${data.claimCode}</span></p>
+                 <small>يرجى أخذ لقطة شاشة (Screenshot)</small><br>
+                 <a href="https://wa.me/201XXXXXXXXX?text=كود الفوز: ${data.claimCode}" class="btn btn-success mt-2">استلم عبر واتساب</a>`;
+        confetti();
+    } else {
+        html += `<h3>حظ أوفر! 🌙</h3><p>شكراً لمحاولتك مع هايبر مرجانكوا</p>`;
+    }
+    content.innerHTML = html;
+}
+
+['mousedown', 'touchstart'].forEach(ev => canvas.addEventListener(ev, () => isDrawing = true));
+['mouseup', 'touchend'].forEach(ev => canvas.addEventListener(ev, () => isDrawing = false));
+['mousemove', 'touchmove'].forEach(ev => canvas.addEventListener(ev, scratch));
+
+init();
+</script>
+<%- include('layout/footer') %>
