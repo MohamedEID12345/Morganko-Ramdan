@@ -46,7 +46,7 @@ router.get('/', (req, res) => {
 // فحص الجهاز للكارت
 router.post('/check-device', (req, res) => {
     const { device_id } = req.body;
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = new Date().toISOString().split('T')[0];
 
     // الفحص هنا يتم في جدول scratch_logs فقط
     db.get("SELECT id FROM scratch_logs WHERE device_id = ? AND scratch_date = ?", [device_id, today], (err, row) => {
@@ -59,19 +59,16 @@ router.post('/check-device', (req, res) => {
 
 router.post('/reveal', (req, res) => {
     const { device_id } = req.body;
-   const today = new Date().toLocaleDateString('en-CA');
- // نضمن صيغة YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0]; // نضمن صيغة YYYY-MM-DD
 
     // 1. حساب عدد الكروت الممسوحة اليوم فقط للبدء من 1 كل يوم جديد
     db.get("SELECT COUNT(*) as count FROM scratch_logs WHERE scratch_date = ?", [today], (err, result) => {
         if (err) return res.json({ success: false });
 
-        const internalOrder = (result ? result.count : 0) + 1;
-const displayOrder = 100 + (result ? result.count : 0);
+        const currentOrder = (result ? result.count : 0) + 1;
 
-db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?", 
-    [internalOrder, today], 
-    (err, prize) => {
+        // 2. التحقق هل هذا الترتيب (رقم الكارت اليومي) فائز؟
+        db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?", [currentOrder, today], (err, prize) => {
             let isWinner = false;
             let claimCode = null;
             let prizeName = "حظ أوفر غداً";
@@ -89,7 +86,7 @@ db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?",
                     isWinner, 
                     amount: prizeName, 
                     claimCode, 
-                    order: displayOrder // هذا الرقم سيبدأ من 1 كل يوم جديد
+                    order: currentOrder // هذا الرقم سيبدأ من 1 كل يوم جديد
                 });
             });
         });

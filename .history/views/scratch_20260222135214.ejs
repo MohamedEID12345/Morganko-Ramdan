@@ -22,7 +22,6 @@
 
 <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio> 
 <audio id="loseSound" src="https://assets.mixkit.co/active_storage/sfx/471/471-preview.mp3"></audio>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
 const canvas = document.getElementById('scratch-canvas');
@@ -125,9 +124,9 @@ async function triggerServerReveal() {
                 <h3 class="text-success fw-bold">مبروك يا ${finalName}!</h3>
                 <p class="fs-5">لقد فزت بـ: <b>${data.amount}</b></p>
                 <div class="p-2 mb-3 shadow-sm bg-light border-dashed">رقم الكارت اليوم: ${data.order}</div>
-                <button id="takeShot" class="btn btn-warning btn-lg">
-📸 خد اسكرينة للجائزة
-</button>
+                <a href="${whatsappUrl}" class="btn btn-success btn-lg shadow-lg pulse">
+                    اضغط هنا لتفعيل الجائزة على الواتساب ✅
+                </a>
             </div>`;
             
         confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });

@@ -1,10 +1,11 @@
 {
   "name": "ramdan",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "index.js",
  "scripts": {
   "start": "node server.js",
-  "dev": "nodemon server.js"
+  "dev": "nodemon server.js",
+  "start": "TZ=Africa/Cairo node app.js"
 },
   "keywords": [],
   "author": "",

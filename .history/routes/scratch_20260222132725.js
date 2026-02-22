@@ -66,12 +66,12 @@ router.post('/reveal', (req, res) => {
     db.get("SELECT COUNT(*) as count FROM scratch_logs WHERE scratch_date = ?", [today], (err, result) => {
         if (err) return res.json({ success: false });
 
-        const internalOrder = (result ? result.count : 0) + 1;
-const displayOrder = 100 + (result ? result.count : 0);
+        const baseNumber = 100; // الرقم اللي يبدأ منه كل يوم
+const currentOrder = baseNumber + (result ? result.count : 0);
 
-db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?", 
-    [internalOrder, today], 
-    (err, prize) => {
+
+        // 2. التحقق هل هذا الترتيب (رقم الكارت اليومي) فائز؟
+        db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?", [currentOrder, today], (err, prize) => {
             let isWinner = false;
             let claimCode = null;
             let prizeName = "حظ أوفر غداً";
@@ -89,7 +89,7 @@ db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?",
                     isWinner, 
                     amount: prizeName, 
                     claimCode, 
-                    order: displayOrder // هذا الرقم سيبدأ من 1 كل يوم جديد
+                    order: currentOrder // هذا الرقم سيبدأ من 1 كل يوم جديد
                 });
             });
         });

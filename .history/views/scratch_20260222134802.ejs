@@ -49,6 +49,20 @@ window.onload = async () => {
         }).then(() => window.location.href = '/');
     }
 }
+document.getElementById('takeShot').addEventListener('click', async () => {
+    const element = document.getElementById('result-content');
+    const canvasShot = await html2canvas(element);
+    const imgData = canvasShot.toDataURL("image/png");
+
+    const link = document.createElement('a');
+    link.href = imgData;
+    link.download = "morganko-win.png";
+    link.click();
+
+    setTimeout(() => {
+        window.open("https://wa.me/201003266111", "_blank");
+    }, 1000);
+});
 
 // 2. رسم الغلاف بصورة هايبر مرجانكوا
 const coverImg = new Image();
@@ -56,11 +70,12 @@ coverImg.crossOrigin = "anonymous";
 coverImg.src = 'https://i.ibb.co/bhHbhjC/morgan.png'; 
 coverImg.onload = () => {
     ctx.drawImage(coverImg, 0, 0, 500, 300);
-    ctx.fillStyle = "rgba(180, 180, 180, 0.2)"; // طبقة لمعان خفيفة
-    ctx.fillRect(0, 0, 500, 300);
 };
 
+
 // 3. تأثير الخربشة
+let lastX = 0, lastY = 0;
+
 function scratch(e) {
     if (!isDrawing || isRevealed) return;
     const rect = canvas.getBoundingClientRect();
@@ -68,11 +83,20 @@ function scratch(e) {
     const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - rect.top;
     
     ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineWidth = 25;
+    ctx.lineCap = 'round';
+
     ctx.beginPath();
-    ctx.arc(x, y, 35, 0, Math.PI * 2); 
-    ctx.fill();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    lastX = x;
+    lastY = y;
+
     checkReveal();
 }
+
 
 function checkReveal() {
     if (isRevealed) return;
@@ -81,7 +105,7 @@ function checkReveal() {
     for (let i = 0; i < imageData.length; i += 4) {
         if (imageData[i + 3] < 128) transparent++;
     }
-    if ((transparent / (500 * 300)) > 0.45) { // تم مسح نصف الكارت تقريباً
+    if ((transparent / (500 * 300)) > 0.60) { // تم مسح نصف الكارت تقريباً
         isRevealed = true;
         canvas.style.transition = 'opacity 0.8s ease';
         canvas.style.opacity = '0';

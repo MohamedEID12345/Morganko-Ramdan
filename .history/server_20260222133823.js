@@ -1,4 +1,3 @@
-process.env.TZ = 'Africa/Cairo';
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
@@ -39,6 +38,7 @@ app.use('/quiz', quizRoutes);
 app.use('/scratch', scratchRoutes);
 
 // الصفحة الرئيسية
+
 app.get('/', (req, res) => {
     res.render('home');
 });

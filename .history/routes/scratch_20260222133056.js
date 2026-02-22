@@ -89,7 +89,7 @@ db.get("SELECT * FROM prize_config WHERE target_index = ? AND prize_date = ?",
                     isWinner, 
                     amount: prizeName, 
                     claimCode, 
-                    order: displayOrder // هذا الرقم سيبدأ من 1 كل يوم جديد
+                    order: currentOrder // هذا الرقم سيبدأ من 1 كل يوم جديد
                 });
             });
         });

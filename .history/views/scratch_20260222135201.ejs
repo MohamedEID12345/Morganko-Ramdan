@@ -49,6 +49,20 @@ window.onload = async () => {
         }).then(() => window.location.href = '/');
     }
 }
+document.getElementById('takeShot').addEventListener('click', async () => {
+    const element = document.getElementById('result-content');
+    const canvasShot = await html2canvas(element);
+    const imgData = canvasShot.toDataURL("image/png");
+
+    const link = document.createElement('a');
+    link.href = imgData;
+    link.download = "morganko-win.png";
+    link.click();
+
+    setTimeout(() => {
+        window.open("https://wa.me/201003266111", "_blank");
+    }, 1000);
+});
 
 // 2. رسم الغلاف بصورة هايبر مرجانكوا
 const coverImg = new Image();
@@ -69,7 +83,7 @@ function scratch(e) {
     
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 35, 0, Math.PI * 2); 
+    ctx.arc(x, y, 12, 0, Math.PI * 2); 
     ctx.fill();
     checkReveal();
 }
