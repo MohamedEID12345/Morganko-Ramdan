@@ -65,7 +65,7 @@ router.post('/check-device', (req, res) => {
 // إرسال الإجابات (POST /quiz/submit)
 router.post('/submit', (req, res) => {
     const { name, age, phone, device_id, answers } = req.body;
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = new Date().toLocaleDateString('en-CA')
 
     db.all("SELECT id, correct_answer FROM questions WHERE quiz_date = ?", [today], (err, questions) => {
         let score = 0;

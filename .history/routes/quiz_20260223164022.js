@@ -4,7 +4,7 @@ const db = require('../config/db');
 
 // هذا المسار سيعمل على http://localhost:3000/quiz
 router.get('/', (req, res) => {
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString('en-CA')ك
 
   db.get("SELECT * FROM settings WHERE id = 1", (err, config) => {
 
@@ -52,7 +52,7 @@ router.get('/', (req, res) => {
 // فحص الجهاز (POST /quiz/check-device)
 router.post('/check-device', (req, res) => {
     const { device_id } = req.body;
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = new Date().toISOString().split('T')[0];
 
     // الفحص هنا يتم في جدول participants فقط
     db.get("SELECT id FROM participants WHERE device_id = ? AND quiz_date = ?", [device_id, today], (err, row) => {
@@ -65,7 +65,7 @@ router.post('/check-device', (req, res) => {
 // إرسال الإجابات (POST /quiz/submit)
 router.post('/submit', (req, res) => {
     const { name, age, phone, device_id, answers } = req.body;
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = new Date().toLocaleDateString('en-CA')
 
     db.all("SELECT id, correct_answer FROM questions WHERE quiz_date = ?", [today], (err, questions) => {
         let score = 0;
