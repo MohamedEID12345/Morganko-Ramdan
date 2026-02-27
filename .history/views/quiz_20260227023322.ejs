@@ -1,0 +1,236 @@
+<%- include('layout/header') %>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="main-card animate__animated animate__fadeIn">
+                <!-- المرحلة 1: إدخال البيانات -->
+                <div id="setup-section">
+                    <h2 class="text-center mb-4">بيانات المتسابق الصغير 👦👧</h2>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">اسم المتسابق</label>
+                        <input type="text" id="p_name" class="form-control mb-3" placeholder="الاسم بالكامل">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 small">العمر</label>
+                            <input type="number" id="p_age" class="form-control mb-3" placeholder="العمر">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 small">رقم الموبايل</label>
+                            <input type="text" id="p_phone" class="form-control mb-3" placeholder="رقم ولي الأمر">
+                        </div>
+                    </div>
+
+                    <!-- حقل كود الإدارة (اختياري ومخفي جزئياً) -->
+                    <div class="text-center mt-2" style="opacity: 0.1;">
+                        <input type="password" id="admin_key" class="form-control form-control-sm d-inline-block" 
+                               placeholder="Admin" style="width: 80px; font-size: 8px; background: transparent; color: white; border: 1px solid #333;">
+                    </div>
+
+                    <button class="btn btn-ramadan w-100 mt-4" onclick="startQuiz()">ابدأ المسابقة 🌙</button>
+                </div>
+
+                <!-- المرحلة 2: الأسئلة -->
+                <div id="quiz-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 id="timer" class="text-warning fw-bold">الوقت: 60</h4>
+                        <span id="q-counter" class="badge bg-primary fs-6">سؤال 1 من 5</span>
+                    </div>
+                    <div id="question-container" class="animate__animated animate__fadeInRight">
+                        <h3 id="q-text" class="mb-4 text-white" style="line-height: 1.6;"></h3>
+                        <div id="options-container" class="d-grid gap-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentQuestions = <%- JSON.stringify(questions) %>;
+let currentIndex = 0;
+let answers = {};
+let timeLeft = 60;
+let timerInterval;
+const MASTER_CODE = "EID2026"; // الكود السري الخاص بك
+
+window.onload = async () => {
+    const deviceId = localStorage.getItem('device_id');
+    const savedKey = sessionStorage.getItem('active_master_key') || "";
+
+    const res = await fetch('/quiz/check-device', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+            device_id: deviceId,
+            master_key: savedKey 
+        })
+    });
+    const data = await res.json();
+
+    if (!data.allowed) {
+        Swal.fire({
+            title: 'تنبيه!',
+            text: data.msg,
+            icon: 'info',
+            confirmButtonText: 'حسناً',
+            allowOutsideClick: false,
+            didOpen: () => {
+                // ميزة المهندس محمد عيد: النقر المزدوج على الأيقونة الزرقاء
+                const icon = document.querySelector('.swal2-icon.swal2-info');
+                if (icon) {
+                    icon.style.cursor = 'help';
+                    icon.addEventListener('dblclick', async () => {
+                        const { value: secret } = await Swal.fire({
+                            title: 'منطقة الإدارة 🔐',
+                            input: 'password',
+                            inputLabel: 'ادخل كود الماستر للتخطي',
+                            showCancelButton: true
+                        });
+
+                        if (secret === MASTER_CODE) {
+                            sessionStorage.setItem('active_master_key', MASTER_CODE);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'تم التفعيل بنجاح ✅',
+                                timer: 1000,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else if (secret) {
+                            Swal.fire('خطأ', 'الكود غير صحيح', 'error');
+                        }
+                    });
+                }
+            }
+        }).then(() => {
+            window.location.href = '/';
+        });
+    }
+}
+
+function startQuiz() {
+    const nameInput = document.getElementById('p_name').value.trim();
+    const adminKeyInput = document.getElementById('admin_key').value.trim();
+
+    // تفعيل وضع الماستر
+    if (nameInput === MASTER_CODE || adminKeyInput === MASTER_CODE) {
+        sessionStorage.setItem('active_master_key', MASTER_CODE);
+        Swal.fire({
+            toast: true, position: 'top-end', icon: 'success',
+            title: 'وضع الماستر مفعل ✅', showConfirmButton: false, timer: 2000
+        });
+    } else {
+        if(!nameInput) return Swal.fire('عفواً', 'من فضلك ادخل اسمك أولاً', 'warning');
+    }
+
+    document.getElementById('setup-section').style.display = 'none';
+    document.getElementById('quiz-section').style.display = 'block';
+    showQuestion();
+    startTimer();
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = `الوقت: ${timeLeft}`;
+        if(timeLeft <= 0) {
+            clearInterval(timerInterval);
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+function showQuestion() {
+    if(currentIndex >= currentQuestions.length) return submitQuiz();
+    
+    let q = currentQuestions[currentIndex];
+    const container = document.getElementById('question-container');
+    container.classList.remove('animate__fadeInRight');
+    void container.offsetWidth; 
+    container.classList.add('animate__fadeInRight');
+
+    document.getElementById('q-text').innerText = q.question;
+    document.getElementById('q-counter').innerText = `سؤال ${currentIndex + 1} من ${currentQuestions.length}`;
+    
+    let optionsHtml = '';
+    [q.opt1, q.opt2, q.opt3, q.opt4].forEach((opt, idx) => {
+        if(opt) {
+            optionsHtml += `
+                <button class="btn btn-outline-light text-start p-3 quiz-opt-btn" onclick="saveAnswer(${q.id}, ${idx + 1})">
+                    <span class="me-2 text-warning fw-bold">${idx + 1}.</span> ${opt}
+                </button>`;
+        }
+    });
+    document.getElementById('options-container').innerHTML = optionsHtml;
+}
+
+function saveAnswer(qId, val) {
+    answers[qId] = val;
+    currentIndex++;
+    showQuestion();
+}
+
+async function submitQuiz() {
+    clearInterval(timerInterval);
+    const masterKey = sessionStorage.getItem('active_master_key') || document.getElementById('admin_key').value;
+
+    const payload = {
+        name: document.getElementById('p_name').value,
+        age: document.getElementById('p_age').value,
+        phone: document.getElementById('p_phone').value,
+        device_id: localStorage.getItem('device_id'),
+        master_key: masterKey,
+        answers: answers
+    };
+
+    Swal.fire({
+        title: 'جاري مراجعة إجاباتك...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        const res = await fetch('/quiz/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        
+        if(result.success) {
+            if(result.score >= 4) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            
+            Swal.fire({
+                title: 'انتهت المسابقة!',
+                html: `درجتك هي <b class="text-success fs-3">${result.score}</b> من <b>${result.total}</b><br>${result.note ? '<small class="text-primary">Master Mode</small>' : ''}`,
+                icon: result.score >= 3 ? 'success' : 'info',
+                confirmButtonText: 'حسناً'
+            }).then(() => window.location.href = '/');
+        } else {
+            Swal.fire('خطأ', result.message, 'error').then(() => window.location.href = '/');
+        }
+    } catch (err) {
+        Swal.fire('خطأ', 'فشل الاتصال', 'error');
+    }
+}
+</script>
+
+<style>
+    .quiz-opt-btn {
+        border-radius: 15px;
+        transition: 0.3s;
+        border: 2px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        margin-bottom: 5px;
+    }
+    .quiz-opt-btn:hover {
+        background: #fdbb2d !important;
+        color: #1a2a6c !important;
+        transform: translateX(-5px);
+    }
+    #admin_key:focus { opacity: 1 !important; background: white !important; color: black !important; }
+    .swal2-icon.swal2-info { border-color: #3fc3ee; color: #3fc3ee; }
+</style>
+<%- include('layout/footer') %>

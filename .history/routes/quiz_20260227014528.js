@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-const MASTER_CODE = "eid2026"; 
+const MASTER_CODE = "EID2026"; 
 
 function getCurrentCycleDate() {
     const now = new Date();
@@ -17,6 +17,7 @@ router.post('/check-device', (req, res) => {
     const { device_id, master_key } = req.body; // استلام الكود من الفرونت إند
     const cycleDate = getCurrentCycleDate();
 
+    // استثناء باستخدام كود الماستر
     if (master_key === MASTER_CODE) {
         return res.json({ allowed: true, isMaster: true });
     }

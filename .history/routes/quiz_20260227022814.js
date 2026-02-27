@@ -14,13 +14,15 @@ function getCurrentCycleDate() {
 
 // 2️⃣ فحص الجهاز 
 router.post('/check-device', (req, res) => {
-    const { device_id, master_key } = req.body; // استلام الكود من الفرونت إند
+    const { device_id, master_key } = req.body;
     const cycleDate = getCurrentCycleDate();
 
-    if (master_key === MASTER_CODE) {
+    // 1. الفحص الأول والأهم: هل الكود صحيح؟
+    if (master_key === "EID2026") {
         return res.json({ allowed: true, isMaster: true });
     }
 
+    // 2. إذا لم يكن كود الماستر، نفحص قاعدة البيانات
     db.get(
         "SELECT id FROM participants WHERE device_id = ? AND quiz_date = ?",
         [device_id, cycleDate],
@@ -28,7 +30,7 @@ router.post('/check-device', (req, res) => {
             if (row) {
                 return res.json({
                     allowed: false,
-                    msg: "نعتذر منك! مسموح بمشاركة واحدة فقط لكل جهاز يومياً. تبدأ الدورة الجديدة يومياً الساعة 8 مساءً 🌙"
+                    msg: "لقد شاركت في مسابقة هذه الدورة بالفعل!"
                 });
             }
             res.json({ allowed: true });

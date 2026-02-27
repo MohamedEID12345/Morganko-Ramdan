@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-const MASTER_CODE = "eid2026"; 
+const MASTER_CODE = "EID2026"; 
 
 function getCurrentCycleDate() {
     const now = new Date();

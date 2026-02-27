@@ -1,0 +1,110 @@
+<%- include('layout/header') %>
+<div class="container bg-light text-dark p-4 rounded-4 mt-5 shadow">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>لوحة التحكم الإدارية ⚙️</h2>
+        <a href="/admin/export" class="btn btn-success">تصدير النتائج CSV</a>
+    </div>
+
+    <!-- إعدادات المواعيد -->
+    <div class="card p-3 mb-4">
+        <h5>⏰ ضبط مواعيد النظام (هايبر مرجانكوا)</h5>
+        <form action="/admin/update-settings" method="POST">
+            <div class="row">
+                <div class="col-md-6 border-end">
+                    <p class="fw-bold text-primary mb-1">المسابقة اليومية:</p>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">من</span>
+                        <input type="time" name="q_start" class="form-control" required>
+                        <span class="input-group-text">إلى</span>
+                        <input type="time" name="q_end" class="form-control" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <p class="fw-bold text-success mb-1">خربشة الكروت:</p>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">من</span>
+                        <input type="time" name="s_start" class="form-control" required>
+                        <span class="input-group-text">إلى</span>
+                        <input type="time" name="s_end" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-dark w-100 mt-2">حفظ المواعيد</button>
+        </form>
+    </div>
+
+    <div class="row">
+        <!-- إضافة سؤال -->
+        <div class="col-md-4">
+            <div class="card p-3 mb-3">
+                <h5>❓ إضافة سؤال</h5>
+                <form action="/admin/add-question" method="POST">
+                    <input type="text" name="question" placeholder="نص السؤال" class="form-control mb-2" required>
+                    <input type="text" name="opt1" placeholder="خيار 1" class="form-control mb-2" required>
+                    <input type="text" name="opt2" placeholder="خيار 2" class="form-control mb-2" required>
+                    <input type="text" name="opt3" placeholder="خيار 3" class="form-control mb-2" required>
+                    <input type="text" name="opt4" placeholder="خيار 4" class="form-control mb-2" required>
+                    <select name="correct" class="form-select mb-2">
+                        <option value="1">الإجابة الصحيحة: 1</option>
+                        <option value="2">الإجابة الصحيحة: 2</option>
+                        <option value="3">الإجابة الصحيحة: 3</option>
+                        <option value="4">الإجابة الصحيحة: 4</option>
+                    </select>
+                    <input type="date" name="date" class="form-control mb-2" value="<%= new Date().toISOString().split('T')[0] %>">
+                    <button class="btn btn-primary w-100">حفظ السؤال</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- إضافة الجوائز -->
+        <div class="col-md-4">
+            <div class="card p-3 mb-3 border-warning">
+                <h5>🎁 تحديد الكروت الفائزة</h5>
+                <form action="/admin/add-prize" method="POST">
+                    <input type="number" name="index" placeholder="رقم ترتيب الكارت (مثلاً 5)" class="form-control mb-2" required>
+                    <input type="text" name="prize" placeholder="اسم الجائزة" class="form-control mb-2" required>
+                    <input type="date" name="date" class="form-control mb-2" value="<%= new Date().toISOString().split('T')[0] %>">
+                    <button class="btn btn-warning w-100">إضافة جائزة لهذا الترتيب</button>
+                </form>
+            </div>
+        </div>
+        <!-- الإحصائيات -->
+        <div class="col-md-4">
+            <div class="card p-3 bg-dark text-white shadow">
+                <h5>📊 إحصائيات اليوم</h5>
+                <p>عدد المشاركين: <span class="badge bg-primary"><%= participants.length %></span></p>
+                <p>عدد الفائزين بالكروت: <span class="badge bg-success text-white"><%= winCount %></span></p>
+                <p>عدد الأسئلة المضافة: <span class="badge bg-info text-white"><%= questions.length %></span></p>
+            </div>
+        </div>
+    </div>
+    <div class="card p-3 mb-4">
+    <h5>⚙️ الإعدادات العامة والموسيقى</h5>
+    <form action="/admin/update-settings" method="POST">
+    <div class="row">
+        <div class="col-md-3">
+            <label>بدء المسابقة</label>
+            <input type="time" name="q_start" class="form-control" value="<%= settings.quiz_start_time %>">
+        </div>
+        <div class="col-md-3">
+            <label>نهاية المسابقة</label>
+            <input type="time" name="q_end" class="form-control" value="<%= settings.quiz_end_time %>">
+        </div>
+        <div class="col-md-3">
+            <label>بدء الخربشة</label>
+            <input type="time" name="s_start" class="form-control" value="<%= settings.scratch_start_time %>">
+        </div>
+        <div class="col-md-3">
+            <label>نهاية الخربشة</label>
+            <input type="time" name="s_end" class="form-control" value="<%= settings.scratch_end_time %>">
+        </div>
+        <div class="col-md-12 mt-3">
+            <label>رابط الموسيقى</label>
+            <input type="text" name="bg_music" class="form-control" value="<%= settings.bg_music %>">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-dark w-100 mt-3">حفظ الإعدادات بالكامل</button>
+</form>
+</div>
+</div>
+<%- include('layout/footer') %>

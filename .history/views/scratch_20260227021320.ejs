@@ -2,7 +2,7 @@
 <div class="container text-center mt-5">
     <h2 class="animate__animated animate__fadeInDown text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🎁 كارت السعادة - هايبر مرجانكوا 🎁</h2>
     
-    <div class="scratch-container mt-4 shadow-lg animate__animated animate__zoomIn" id="capture-area" 
+    <div class="scratch-container mt-4 shadow-lg animate__animated animate__zoomIn" 
          style="position: relative; width: 500px; height: 300px; margin: 0 auto; border-radius: 20px; overflow: hidden; border: 8px solid #fdbb2d; background: #fff; box-shadow: 0 0 25px rgba(253, 187, 45, 0.5) !important;">
         
         <!-- خلفية النتيجة -->
@@ -18,18 +18,10 @@
     </div>
     
     <p class="mt-4 text-white fw-bold animate__animated animate__pulse animate__infinite" style="font-size: 1.2rem;">حرك إصبعك يميناً ويساراً لمسح الكارت 👆</p>
-
-    <!-- حقل كود الإدارة (مخفي جزئياً لتجربة الماستر) -->
-    <div class="text-center mt-2" style="opacity: 0.2;">
-        <input type="password" id="admin_key" class="form-control form-control-sm d-inline-block" 
-               placeholder="كود الإدارة" style="width: 100px; font-size: 10px; background: transparent; color: white; border: 1px solid #444;">
-    </div>
 </div>
 
 <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio> 
 <audio id="loseSound" src="https://assets.mixkit.co/active_storage/sfx/471/471-preview.mp3"></audio>
-
-<!-- مكتبة تحويل الـ HTML لصورة -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
@@ -37,20 +29,14 @@ const canvas = document.getElementById('scratch-canvas');
 const ctx = canvas.getContext('2d');
 let isDrawing = false;
 let isRevealed = false;
-const MASTER_CODE = "EID2026";
 
-// 1. فحص الجهاز مع دعم كود الماستر
+// 1. فحص الجهاز
 window.onload = async () => {
     const deviceId = localStorage.getItem('device_id');
-    const savedKey = sessionStorage.getItem('active_master_key') || "";
-
     const res = await fetch('/scratch/check-device', { 
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ 
-            device_id: deviceId,
-            master_key: savedKey 
-        })
+        body: JSON.stringify({ device_id: deviceId })
     });
     const data = await res.json();
     if (!data.allowed) {
@@ -64,13 +50,13 @@ window.onload = async () => {
     }
 }
 
-// 2. رسم الغلاف
+// 2. رسم الغلاف بصورة هايبر مرجانكوا
 const coverImg = new Image();
 coverImg.crossOrigin = "anonymous"; 
 coverImg.src = 'https://i.ibb.co/bhHbhjC/morgan.png'; 
 coverImg.onload = () => {
     ctx.drawImage(coverImg, 0, 0, 500, 300);
-    ctx.fillStyle = "rgba(180, 180, 180, 0.2)";
+    ctx.fillStyle = "rgba(180, 180, 180, 0.2)"; // طبقة لمعان خفيفة
     ctx.fillRect(0, 0, 500, 300);
 };
 
@@ -95,7 +81,7 @@ function checkReveal() {
     for (let i = 0; i < imageData.length; i += 4) {
         if (imageData[i + 3] < 128) transparent++;
     }
-    if ((transparent / (500 * 300)) > 0.45) {
+    if ((transparent / (500 * 300)) > 0.45) { // تم مسح نصف الكارت تقريباً
         isRevealed = true;
         canvas.style.transition = 'opacity 0.8s ease';
         canvas.style.opacity = '0';
@@ -106,83 +92,55 @@ function checkReveal() {
     }
 }
 
-// 4. معالجة النتيجة والواتساب ولقطة الشاشة
+// 4. معالجة النتيجة والواتساب
 async function triggerServerReveal() {
     const deviceId = localStorage.getItem('device_id');
-    const adminKey = document.getElementById('admin_key').value || sessionStorage.getItem('active_master_key');
-    
-    // تفعيل وضع الماستر إذا تم إدخال الكود
-    if(adminKey === MASTER_CODE) sessionStorage.setItem('active_master_key', MASTER_CODE);
-
     const res = await fetch('/scratch/reveal', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ 
-            device_id: deviceId,
-            master_key: adminKey 
-        })
+        body: JSON.stringify({ device_id: deviceId })
     });
     const data = await res.json();
     
-    const content = document.getElementById('result-content');
     if (data.isWinner) {
         document.getElementById('winSound').play();
         
+        // طلب اسم الفائز لإرساله واتساب
         const { value: userName } = await Swal.fire({
             title: 'مبروك يا بطل! 🎉',
-            text: 'اكتب اسمك لاستلام هديتك من هايبر مرجانكوا:',
+            text: 'اكتب اسمك عشان تستلم هديتك من هايبر مرجانكوا:',
             input: 'text',
             inputPlaceholder: 'ادخل اسمك هنا...',
             allowOutsideClick: false,
-            confirmButtonText: 'تأكيد البيانات 🎁',
+            confirmButtonText: 'إرسال واستلام الهدية 🎁',
             confirmButtonColor: '#25D366'
         });
 
-        const finalName = userName || "متسابق";
-        const message = `*فائز جديد - هايبر مرجانكوا* 🌙%0A*الاسم:* ${finalName}%0A*رقم الكارت اليومي:* ${data.order}%0A*الجائزة:* ${data.amount}%0A*كود التحقق:* ${data.claimCode}`;
+        const finalName = userName || "متسابق مجهول";
+        const message = `*فائز جديد من مسابقة هايبر مرجانكوا* 🌙%0A----------------------%0A*الاسم:* ${finalName}%0A*رقم الكارت اليومي:* ${data.order}%0A*الجائزة:* ${data.amount}%0A*كود التحقق:* ${data.claimCode}`;
         const whatsappUrl = `https://wa.me/201003266111?text=${message}`;
 
-        content.innerHTML = `
+        document.getElementById('result-content').innerHTML = `
             <div class="animate__animated animate__bounceIn">
                 <h3 class="text-success fw-bold">مبروك يا ${finalName}!</h3>
-                <p class="fs-5 mb-1">فزت بـ: <b>${data.amount}</b></p>
-                <div class="p-2 mb-2 shadow-sm bg-light border-dashed">رقم الكارت اليوم: ${data.order}</div>
-                <div class="d-grid gap-2 col-8 mx-auto">
-                    <button onclick="takeScreenshot()" class="btn btn-warning btn-sm">📸 حفظ صورة الجائزة</button>
-                    <a href="${whatsappUrl}" class="btn btn-success btn-sm pulse">استلام عبر واتساب ✅</a>
-                </div>
+                <p class="fs-5">لقد فزت بـ: <b>${data.amount}</b></p>
+                <div class="p-2 mb-3 shadow-sm bg-light border-dashed">رقم الكارت اليوم: ${data.order}</div>
+                <button id="takeShot" class="btn btn-warning btn-lg">
+📸 خد اسكرينة للجائزة
+</button>
             </div>`;
             
         confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
     } else {
         document.getElementById('loseSound').play();
-        content.innerHTML = `
+        document.getElementById('result-content').innerHTML = `
             <div class="animate__animated animate__fadeIn">
-                <h3 class="text-danger">حظ أوفر 🌙</h3>
+                <h3 class="text-danger">حظ أوفر المرة القادمة 🌙</h3>
                 <p>رقم كارتك اليوم كان: ${data.order}</p>
-                <p class="text-muted small">حاول مرة أخرى غداً</p>
-                <a href="/" class="btn btn-primary btn-sm">العودة</a>
+                <p class="text-muted">حاول مرة أخرى غداً، لسه في جوائز كتير!</p>
+                <a href="/" class="btn btn-primary mt-2">العودة للرئيسية</a>
             </div>`;
     }
-}
-
-// دالة تصوير الشاشة (Screenshot)
-function takeScreenshot() {
-    const area = document.getElementById('capture-area');
-    html2canvas(area).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'marjan-prize-' + Date.now() + '.png';
-        link.href = canvas.toDataURL();
-        link.click();
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'تم حفظ الصورة بنجاح ✅',
-            showConfirmButton: false,
-            timer: 2000
-        });
-    });
 }
 
 ['mousedown', 'touchstart'].forEach(ev => canvas.addEventListener(ev, (e) => { isDrawing = true; scratch(e); e.preventDefault(); }, {passive: false}));
@@ -194,10 +152,9 @@ function takeScreenshot() {
     .pulse { animation: pulse-animation 2s infinite; }
     @keyframes pulse-animation {
         0% { transform: scale(1); }
-        50% { transform: scale(1.03); }
+        50% { transform: scale(1.05); }
         100% { transform: scale(1); }
     }
-    .border-dashed { border: 2px dashed #fdbb2d; border-radius: 10px; font-weight: bold; }
-    #admin_key:focus { opacity: 1 !important; background: #fff !important; color: #000 !important; }
+    .border-dashed { border: 2px dashed #fdbb2d; border-radius: 10px; }
 </style>
 <%- include('layout/footer') %>
