@@ -43,10 +43,8 @@ router.get('/', (req, res) => {
         /* ===== قبل وقت البداية ===== */
        if (now < startDate) {
     return res.render('countdown', { 
-    title: "باقي على المسابقة 🌙",
-    description: "ستفتح المسابقة في تمام الساعة:",
-    targetTime: start 
-});
+        targetTime: start 
+    });
 }
 
         /* ===== بعد وقت النهاية ===== */

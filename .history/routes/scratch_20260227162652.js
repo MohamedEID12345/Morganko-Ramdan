@@ -42,19 +42,34 @@ router.get('/', (req, res) => {
 
         /* ===== قبل البداية ===== */
        if (now < startDate) {
-   return res.render('countdown', { 
-    title: "باقي على الخربشة 🎁",
-    description: "ستفتح الخربشة في تمام الساعة:",
-    targetTime: start 
-});
+    return res.render('countdown', { 
+        targetTime: start 
+    });
 }
 
         /* ===== بعد النهاية ===== */
         if (now > endDate) {
-    return res.render('message', { 
-        msg: "انتهى وقت الخربشة اليوم 🎁" 
-    });
-}
+            return res.send(`
+                <html dir="rtl">
+                <head>
+                    <style>
+                        body{
+                            background:#111;
+                            color:#fff;
+                            text-align:center;
+                            font-family:tahoma;
+                            padding-top:100px
+                        }
+                        h2{color:#ff4444}
+                    </style>
+                </head>
+                <body>
+                    <h2>انتهى وقت الخربشة اليوم 🎁</h2>
+                </body>
+                </html>
+            `);
+        }
+
         /* ===== داخل الوقت ===== */
         res.render('scratch', { settings: config });
 

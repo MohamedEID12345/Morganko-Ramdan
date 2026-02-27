@@ -41,20 +41,81 @@ router.get('/', (req, res) => {
         endDate.setHours(endH, endM, 0, 0);
 
         /* ===== قبل البداية ===== */
-       if (now < startDate) {
-   return res.render('countdown', { 
-    title: "باقي على الخربشة 🎁",
-    description: "ستفتح الخربشة في تمام الساعة:",
-    targetTime: start 
-});
-}
+        if (now < startDate) {
+            return res.send(`
+                <html dir="rtl">
+                <head>
+                    <title>المتبقي من الوقت</title>
+                    <style>
+                        body{
+                            background:#111;
+                            color:#fff;
+                            text-align:center;
+                            font-family:tahoma;
+                            padding-top:100px
+                        }
+                        h1{color:#00c3ff}
+                        #countdown{
+                            font-size:45px;
+                            margin-top:20px;
+                            font-weight:bold
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>🎁 المتبقي لفتح الخربشة</h1>
+                    <div id="countdown"></div>
+
+                    <script>
+                        const target = new Date("${startDate.toISOString()}").getTime();
+
+                        setInterval(()=>{
+                            const now = new Date().getTime();
+                            const diff = target - now;
+
+                            if(diff <= 0){
+                                location.reload();
+                                return;
+                            }
+
+                            const hours = Math.floor(diff / (1000*60*60));
+                            const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+                            const seconds = Math.floor((diff % (1000*60)) / 1000);
+
+                            document.getElementById("countdown").innerText =
+                                hours + " ساعة " +
+                                minutes + " دقيقة " +
+                                seconds + " ثانية";
+                        },1000);
+                    </script>
+                </body>
+                </html>
+            `);
+        }
 
         /* ===== بعد النهاية ===== */
         if (now > endDate) {
-    return res.render('message', { 
-        msg: "انتهى وقت الخربشة اليوم 🎁" 
-    });
-}
+            return res.send(`
+                <html dir="rtl">
+                <head>
+                    <style>
+                        body{
+                            background:#111;
+                            color:#fff;
+                            text-align:center;
+                            font-family:tahoma;
+                            padding-top:100px
+                        }
+                        h2{color:#ff4444}
+                    </style>
+                </head>
+                <body>
+                    <h2>انتهى وقت الخربشة اليوم 🎁</h2>
+                </body>
+                </html>
+            `);
+        }
+
         /* ===== داخل الوقت ===== */
         res.render('scratch', { settings: config });
 

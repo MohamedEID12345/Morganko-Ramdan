@@ -1,0 +1,53 @@
+<%- include('layout/header') %>
+
+<div class="container text-center mt-5">
+    <div class="main-card animate__animated animate__bounceIn">
+
+        <h2 class="mb-4 text-warning">
+            <%= title %>
+        </h2>
+
+        <div id="countdown" class="display-1 fw-bold mb-4">
+            00:00:00
+        </div>
+
+        <p class="lead">
+            <%= description %> <%= targetTime %>
+        </p>
+
+        <p>برعاية هايبر مرجانكوا</p>
+    </div>
+</div>
+
+<script>
+function updateTimer() {
+
+    const now = new Date();
+    const targetStr = "<%= targetTime %>";
+
+    const target = new Date();
+    const parts = targetStr.split(':');
+    target.setHours(parts[0], parts[1], 0);
+
+    const diff = target - now;
+
+    if (diff <= 0) {
+        window.location.reload();
+        return;
+    }
+
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('countdown').innerText =
+        `${String(h).padStart(2,'0')}:` +
+        `${String(m).padStart(2,'0')}:` +
+        `${String(s).padStart(2,'0')}`;
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+</script>
+
+<%- include('layout/footer') %>

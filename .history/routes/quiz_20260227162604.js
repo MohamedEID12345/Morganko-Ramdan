@@ -43,18 +43,33 @@ router.get('/', (req, res) => {
         /* ===== قبل وقت البداية ===== */
        if (now < startDate) {
     return res.render('countdown', { 
-    title: "باقي على المسابقة 🌙",
-    description: "ستفتح المسابقة في تمام الساعة:",
-    targetTime: start 
-});
+        targetTime: start 
+    });
 }
 
         /* ===== بعد وقت النهاية ===== */
-       if (now > endDate) {
-    return res.render('message', { 
-        msg: "انتهى وقت المسابقة اليوم 🌙" 
-    });
-}
+        if (now > endDate) {
+            return res.send(`
+                <html dir="rtl">
+                <head>
+                    <style>
+                        body{
+                            background:#111;
+                            color:#fff;
+                            text-align:center;
+                            font-family:tahoma;
+                            padding-top:100px
+                        }
+                        h2{color:#ff4444}
+                    </style>
+                </head>
+                <body>
+                    <h2>انتهى وقت المسابقة اليوم 🌙</h2>
+                </body>
+                </html>
+            `);
+        }
+
         /* ===== داخل الوقت ===== */
         db.all(
             "SELECT * FROM questions WHERE quiz_date = ?",

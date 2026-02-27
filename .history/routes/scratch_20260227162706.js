@@ -42,11 +42,9 @@ router.get('/', (req, res) => {
 
         /* ===== قبل البداية ===== */
        if (now < startDate) {
-   return res.render('countdown', { 
-    title: "باقي على الخربشة 🎁",
-    description: "ستفتح الخربشة في تمام الساعة:",
-    targetTime: start 
-});
+    return res.render('countdown', { 
+        targetTime: start 
+    });
 }
 
         /* ===== بعد النهاية ===== */

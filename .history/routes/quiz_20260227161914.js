@@ -41,20 +41,82 @@ router.get('/', (req, res) => {
         endDate.setHours(endH, endM, 0, 0);
 
         /* ===== قبل وقت البداية ===== */
-       if (now < startDate) {
-    return res.render('countdown', { 
-    title: "باقي على المسابقة 🌙",
-    description: "ستفتح المسابقة في تمام الساعة:",
-    targetTime: start 
-});
-}
+        if (now < startDate) {
+
+            return res.send(`
+                <html dir="rtl">
+                <head>
+                    <title>المتبقي من الوقت</title>
+                    <style>
+                        body{
+                            background:#111;
+                            color:#fff;
+                            text-align:center;
+                            font-family:tahoma;
+                            padding-top:100px
+                        }
+                        h1{color:#fdbb2d}
+                        #countdown{
+                            font-size:45px;
+                            margin-top:20px;
+                            font-weight:bold
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>⏳ المتبقي من الوقت</h1>
+                    <div id="countdown"></div>
+
+                    <script>
+                        const target = new Date("${startDate.toISOString()}").getTime();
+
+                        setInterval(()=>{
+                            const now = new Date().getTime();
+                            const diff = target - now;
+
+                            if(diff <= 0){
+                                location.reload();
+                                return;
+                            }
+
+                            const hours = Math.floor(diff / (1000*60*60));
+                            const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+                            const seconds = Math.floor((diff % (1000*60)) / 1000);
+
+                            document.getElementById("countdown").innerText =
+                                hours + " ساعة " +
+                                minutes + " دقيقة " +
+                                seconds + " ثانية";
+                        },1000);
+                    </script>
+                </body>
+                </html>
+            `);
+        }
 
         /* ===== بعد وقت النهاية ===== */
-       if (now > endDate) {
-    return res.render('message', { 
-        msg: "انتهى وقت المسابقة اليوم 🌙" 
-    });
-}
+        if (now > endDate) {
+            return res.send(`
+                <html dir="rtl">
+                <head>
+                    <style>
+                        body{
+                            background:#111;
+                            color:#fff;
+                            text-align:center;
+                            font-family:tahoma;
+                            padding-top:100px
+                        }
+                        h2{color:#ff4444}
+                    </style>
+                </head>
+                <body>
+                    <h2>انتهى وقت المسابقة اليوم 🌙</h2>
+                </body>
+                </html>
+            `);
+        }
+
         /* ===== داخل الوقت ===== */
         db.all(
             "SELECT * FROM questions WHERE quiz_date = ?",
