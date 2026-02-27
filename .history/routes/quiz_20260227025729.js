@@ -14,22 +14,17 @@ function getCurrentCycleDate() {
 
 // 🟢 هذا الجزء هو الناقص (لفتح صفحة المسابقة)
 router.get('/', (req, res) => {
-    const cycleDate = getCurrentCycleDate(); // "YYYY-MM-DD"
+    const cycleDate = getCurrentCycleDate();
     
     db.get("SELECT * FROM settings WHERE id = 1", (err, config) => {
         if (err || !config) return res.render('message', { msg: "يرجى ضبط الإعدادات أولاً" });
 
-        // جلب الأسئلة
+        // جلب الأسئلة بناءً على تاريخ الدورة
         db.all("SELECT * FROM questions WHERE quiz_date = ?", [cycleDate], (err, questions) => {
-            console.log("Searching for questions on date:", cycleDate); // للديبرج في التيرمنال
-            console.log("Found questions:", questions ? questions.length : 0);
-
             if (!questions || questions.length === 0) {
-                // رسالة توضيحية للأدمن أثناء الاختبار
-                return res.render('message', { 
-                    msg: `لا توجد أسئلة مضافة لدورة يوم (${cycleDate}). يرجى التأكد من إضافة الأسئلة بنفس هذا التاريخ من لوحة التحكم.` 
-                });
+                return res.render('message', { msg: "لا توجد أسئلة مضافة لهذه الدورة 🌙" });
             }
+            // إرسال الأسئلة والإعدادات لصفحة EJS
             res.render('quiz', { questions, settings: config });
         });
     });

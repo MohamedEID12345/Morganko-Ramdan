@@ -63,8 +63,7 @@
                 <form action="/admin/add-prize" method="POST">
                     <input type="number" name="index" placeholder="رقم ترتيب الكارت (مثلاً 5)" class="form-control mb-2" required>
                     <input type="text" name="prize" placeholder="اسم الجائزة" class="form-control mb-2" required>
-                   <input type="date" name="date" class="form-control mb-2" value="<%= currentCycle %>">
-
+                    <input type="date" name="date" class="form-control mb-2" value="<%= new Date().toISOString().split('T')[0] %>">
                     <button class="btn btn-warning w-100">إضافة جائزة لهذا الترتيب</button>
                 </form>
             </div>
